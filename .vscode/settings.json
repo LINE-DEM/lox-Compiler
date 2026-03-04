@@ -1,0 +1,9 @@
+{
+  "java.project.sourcePaths": ["src"],
+  "java.project.outputPath": "bin",
+  "java.project.referencedLibraries": [],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.home": "C:\\Program Files\\Java\\jdk-21",
+  "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-21",
+  "files.encoding": "utf8"
+}

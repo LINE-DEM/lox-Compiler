@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Lox",
+      "request": "launch",
+      "mainClass": "com.craftinginterpreters.lox.Lox",
+      "projectName": "lox-Compiler_a7b6093d",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "java",
+      "name": "Launch Lox",
+      "request": "launch",
+      "mainClass": "com.craftinginterpreters.lox.Lox",
+      "projectName": "lox-Compiler",
+      "console": "integratedTerminal"
+    }
+  ]
+}

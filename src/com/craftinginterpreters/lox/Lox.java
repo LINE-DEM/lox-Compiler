@@ -21,7 +21,7 @@ public class Lox {
     }
   }
 
-  private static void runFile(String path) throws IOException {
+  private static void runFile(String path) throws IOException { 
     // TODO: 将在后续章节实现
     byte[] bytes = Files.readAllBytes(Paths.get(path));
     run(new String(bytes, Charset.defaultCharset()));

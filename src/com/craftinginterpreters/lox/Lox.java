@@ -52,12 +52,12 @@ public class Lox {
     List<Token> tokens = scanner.scanTokens();
 // 替换部分开始
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
     // Stop if there was a syntax error.
     if (hadError) return;
 
-    interpreter.interpret(expression);
+    interpreter.interpret(statements);
     // 替换部分结束
   }
   static void error(int line, String message) {

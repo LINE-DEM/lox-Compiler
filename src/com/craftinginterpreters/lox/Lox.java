@@ -8,6 +8,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
+/**
+ * 解释器入口。接收命令行参数决定运行脚本文件还是 REPL 交互模式，
+ * 驱动 Scanner→Parser→Interpreter 整条流水线执行 Lox 源码。
+ */
 public class Lox {
   private static final Interpreter interpreter = new Interpreter();
   static boolean hadError = false;

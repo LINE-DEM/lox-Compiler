@@ -1,5 +1,9 @@
 package com.craftinginterpreters.lox;
 
+/**
+ * AST 打印器（调试工具）。输入：Expr 表达式树；输出：括号嵌套格式的字符串。
+ * 实现 Expr.Visitor，用于开发阶段直观查看解析结果，不参与正式执行流程。
+ */
 class AstPrinter implements Expr.Visitor<String> {
   String print(Expr expr) {
     return expr.accept(this);
@@ -25,6 +29,16 @@ class AstPrinter implements Expr.Visitor<String> {
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {
     return parenthesize(expr.operator.lexeme, expr.right);
+  }
+
+  @Override
+  public String visitAssignExpr(Expr.Assign expr) {
+    return parenthesize("= " + expr.name.lexeme, expr.value);
+  }
+
+  @Override
+  public String visitVariableExpr(Expr.Variable expr) {
+    return expr.name.lexeme;
   }
 
   private String parenthesize(String name, Expr... exprs) {

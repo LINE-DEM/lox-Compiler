@@ -7,6 +7,10 @@ import java.util.Map;
 
 import static com.craftinginterpreters.lox.TokenType.*; 
 
+/**
+ * 词法扫描器（Lexer）。输入：Lox 源码字符串；输出：Token 列表。
+ * 逐字符读取源码，识别关键字、标识符、数字、字符串等，跳过空白和注释。
+ */
 class Scanner {
   private final String source;
 

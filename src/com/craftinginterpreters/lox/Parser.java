@@ -4,6 +4,10 @@ import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
+/**
+ * 语法解析器。输入：Token 列表（Scanner 输出）；输出：Stmt 列表（AST）。
+ * 使用递归下降法，按语法规则将 Token 序列组装成语句和表达式树。
+ */
 class Parser {
   private static class ParseError extends RuntimeException {}
   private final List<Token> tokens;
@@ -16,17 +20,29 @@ class Parser {
   List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
-      statements.add(statement());
+      statements.add(declaration());
     }
 
-    return statements; 
+    return statements;
   }
 
   //将每一条规则翻译为Java代码
   private Expr expression() {
-    return equality();
+    return assignment();
   }
+
+  private Stmt declaration() {
+    try {
+      if (match(VAR)) return varDeclaration();
+      return statement();
+    } catch (ParseError error) {
+      synchronize();
+      return null;
+    }
+  }
+
   private Stmt statement() {
+    if (match(LEFT_BRACE)) return new Stmt.Block(block());
     if (match(PRINT)) return printStatement();
 
     return expressionStatement();
@@ -36,11 +52,51 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(value);
   }
+  private List<Stmt> block() {
+    List<Stmt> statements = new ArrayList<>();
+    while (!check(RIGHT_BRACE) && !isAtEnd()) {
+      statements.add(declaration());
+    }
+    consume(RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
+  }
+
+  private Stmt varDeclaration() {
+    Token name = consume(IDENTIFIER, "Expect variable name.");
+
+    Expr initializer = null;
+    if (match(EQUAL)) {
+      initializer = expression();
+    }
+
+    consume(SEMICOLON, "Expect ';' after variable declaration.");
+    return new Stmt.Var(name, initializer);
+  }
+
   private Stmt expressionStatement() {
     Expr expr = expression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
+
+  private Expr assignment() {
+    Expr expr = equality();
+
+    if (match(EQUAL)) {
+      Token equals = previous();
+      Expr value = assignment();
+
+      if (expr instanceof Expr.Variable) {
+        Token name = ((Expr.Variable)expr).name;
+        return new Expr.Assign(name, value);
+      }
+
+      error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
   private Expr equality() {
     Expr expr = comparison();
 
@@ -104,6 +160,10 @@ class Parser {
       return new Expr.Literal(previous().literal);
     }
 
+    if (match(IDENTIFIER)) {
+      return new Expr.Variable(previous());
+    }
+
     if (match(LEFT_PAREN)) {
         Expr expr = expression();
         consume(RIGHT_PAREN, "Expect ')' after expression.");
@@ -159,6 +219,7 @@ class Parser {
     return peek().type == type;
   }
 
+  // 返回当前token 并且指针+1
   private Token advance() {
     if (!isAtEnd()) current++;
     return previous();

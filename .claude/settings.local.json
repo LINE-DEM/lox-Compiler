@@ -4,7 +4,10 @@
       "Bash(javac src/com/craftinginterpreters/lox/*.java)",
       "Bash(javac -cp src -d out src/com/craftinginterpreters/lox/*.java)",
       "Bash(echo 'fun sayHi\\(first, last\\) { print \"\"\"\"Hi, \"\"\"\" + first + \"\"\"\" \"\"\"\" + last + \"\"\"\"!\"\"\"\"; } sayHi\\(\"\"\"\"Dear\"\"\"\", \"\"\"\"Reader\"\"\"\"\\);')",
-      "Bash(java -cp out com.craftinginterpreters.lox.Lox)"
+      "Bash(java -cp out com.craftinginterpreters.lox.Lox)",
+      "Bash(javac -d out src/com/craftinginterpreters/lox/*.java)",
+      "Bash(echo 'var a = \"\"\"\"global\"\"\"\";:*)",
+      "Bash(java -cp out com.craftinginterpreters.lox.Lox test_ch11.lox)"
     ]
   }
 }

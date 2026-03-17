@@ -1,6 +1,8 @@
 package com.craftinginterpreters.lox;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 解释器（树遍历求值）
@@ -21,6 +23,10 @@ class Interpreter implements Expr.Visitor<Object>,
   final Environment globals = new Environment();
   /** 当前活跃环境（随块/函数调用切换） */
   private Environment environment = globals;
+  // 新增部分开始
+  /** 变量解析结果：每个变量/赋值表达式 → 距声明作用域的跳数 */
+  private final Map<Expr, Integer> locals = new HashMap<>();
+  // 新增部分结束
 
   Interpreter() {
     // 注册内置函数 clock()：返回 Unix 时间戳（秒），用于性能计时
@@ -189,8 +195,21 @@ class Interpreter implements Expr.Visitor<Object>,
    */
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-    return environment.get(expr.name);
+    // 替换部分开始
+    return lookUpVariable(expr.name, expr);
+    // 替换部分结束
   }
+
+  // 新增部分开始
+  private Object lookUpVariable(Token name, Expr expr) {
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      return environment.getAt(distance, name.lexeme);
+    } else {
+      return globals.get(name);
+    }
+  }
+  // 新增部分结束
 
   /**
    * 括号分组：直接求值内部表达式，分组仅影响解析优先级，运行时无额外语义。
@@ -207,7 +226,14 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
-    environment.assign(expr.name, value);
+    // 替换部分开始
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      environment.assignAt(distance, expr.name, value);
+    } else {
+      globals.assign(expr.name, value);
+    }
+    // 替换部分结束
     return value;
   }
 
@@ -342,6 +368,13 @@ class Interpreter implements Expr.Visitor<Object>,
 
 
 
+
+  // 新增部分开始
+  /** 由 Resolver 调用：记录变量/赋值表达式对应的作用域跳数 */
+  void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
+  }
+  // 新增部分结束
 
   /** 分发给对应的 visitXxxExpr 方法（Visitor 模式入口） */
   private Object evaluate(Expr expr) {

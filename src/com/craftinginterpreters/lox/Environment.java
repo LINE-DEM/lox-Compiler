@@ -24,6 +24,27 @@ class Environment {
     values.put(name, value);
   }
 
+  // 新增部分开始
+  /** 沿 enclosing 链向上走 distance 步，返回目标环境 */
+  Environment ancestor(int distance) {
+    Environment environment = this;
+    for (int i = 0; i < distance; i++) {
+      environment = environment.enclosing;
+    }
+    return environment;
+  }
+
+  /** 直接在距离为 distance 的祖先环境中读取变量（无需动态查找） */
+  Object getAt(int distance, String name) {
+    return ancestor(distance).values.get(name);
+  }
+
+  /** 直接在距离为 distance 的祖先环境中写入变量 */
+  void assignAt(int distance, Token name, Object value) {
+    ancestor(distance).values.put(name.lexeme, value);
+  }
+  // 新增部分结束
+
   Object get(Token name) {
     if (values.containsKey(name.lexeme)) {
       return values.get(name.lexeme);

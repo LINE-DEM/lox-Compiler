@@ -48,6 +48,9 @@ class Parser {
    */
   private Stmt declaration() {
     try {
+      // 新增部分开始
+      if (match(CLASS)) return classDeclaration();
+      // 新增部分结束
       if (match(FUN)) return function("function"); // fun 关键字 → 函数声明
       if (match(VAR)) return varDeclaration();     // var 关键字 → 变量声明
       return statement();
@@ -223,6 +226,21 @@ class Parser {
     return new Stmt.Expression(expr);
   }
 
+  // 新增部分开始
+  private Stmt classDeclaration() {
+    Token name = consume(IDENTIFIER, "Expect class name.");
+    consume(LEFT_BRACE, "Expect '{' before class body.");
+
+    List<Stmt.Function> methods = new ArrayList<>();
+    while (!check(RIGHT_BRACE) && !isAtEnd()) {
+      methods.add(function("method"));
+    }
+
+    consume(RIGHT_BRACE, "Expect '}' after class body.");
+    return new Stmt.Class(name, methods);
+  }
+  // 新增部分结束
+
   /**
    * 函数声明 = "fun" 函数名 "(" 参数列表 ")" "{" 语句* "}"
    * kind 参数用于错误提示区分（如将来支持 "method"）
@@ -274,6 +292,11 @@ class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable) expr).name;
         return new Expr.Assign(name, value);
+      // 新增部分开始
+      } else if (expr instanceof Expr.Get) {
+        Expr.Get get = (Expr.Get) expr;
+        return new Expr.Set(get.object, get.name, value);
+      // 新增部分结束
       }
 
       error(equals, "Invalid assignment target."); // 左侧不是变量，报错
@@ -399,6 +422,11 @@ class Parser {
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
+      // 新增部分开始
+      } else if (match(DOT)) {
+        Token name = consume(IDENTIFIER, "Expect property name after '.'.");
+        expr = new Expr.Get(expr, name);
+      // 新增部分结束
       } else {
         break;
       }
@@ -439,6 +467,10 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().literal);
     }
+
+    // 新增部分开始
+    if (match(THIS)) return new Expr.This(previous());
+    // 新增部分结束
 
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous()); // 变量引用

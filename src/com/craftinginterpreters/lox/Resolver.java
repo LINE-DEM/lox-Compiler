@@ -30,10 +30,46 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   /** 区分"不在函数内"和"在函数内"，便于扩展（方法、构造器等） */
   private enum FunctionType {
     NONE,
-    FUNCTION
+    FUNCTION,
+    // 新增部分开始
+    METHOD
+    // 新增部分结束
   }
 
+  // 新增部分开始
+  private enum ClassType {
+    NONE,
+    CLASS
+  }
+
+  private ClassType currentClass = ClassType.NONE;
+  // 新增部分结束
+
   // ─── 语句节点 ────────────────────────────────────────────────────────────────
+
+  // 新增部分开始
+  @Override
+  public Void visitClassStmt(Stmt.Class stmt) {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
+
+    declare(stmt.name);
+    define(stmt.name);
+
+    beginScope();
+    scopes.peek().put("this", true);
+
+    for (Stmt.Function method : stmt.methods) {
+      FunctionType declaration = FunctionType.METHOD;
+      resolveFunction(method, declaration);
+    }
+
+    endScope();
+
+    currentClass = enclosingClass;
+    return null;
+  }
+  // 新增部分结束
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
@@ -132,6 +168,31 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(expr.right);
     return null;
   }
+
+  // 新增部分开始
+  @Override
+  public Void visitGetExpr(Expr.Get expr) {
+    resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitSetExpr(Expr.Set expr) {
+    resolve(expr.value);
+    resolve(expr.object);
+    return null;
+  }
+
+  @Override
+  public Void visitThisExpr(Expr.This expr) {
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword, "Can't use 'this' outside of a class.");
+      return null;
+    }
+    resolveLocal(expr, expr.keyword);
+    return null;
+  }
+  // 新增部分结束
 
   @Override
   public Void visitCallExpr(Expr.Call expr) {

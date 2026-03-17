@@ -10,6 +10,9 @@ import java.util.List;
 abstract class Stmt {
   interface Visitor<R> {
     R visitBlockStmt(Block stmt);
+    // 新增部分开始
+    R visitClassStmt(Class stmt);
+    // 新增部分结束
     R visitExpressionStmt(Expression stmt);
     // 新增部分开始
     R visitFunctionStmt(Function stmt);
@@ -92,6 +95,23 @@ abstract class Stmt {
 
     final Expr condition;
     final Stmt body;
+  }
+  // 新增部分结束
+
+  // 新增部分开始
+  static class Class extends Stmt {
+    Class(Token name, List<Stmt.Function> methods) {
+      this.name = name;
+      this.methods = methods;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassStmt(this);
+    }
+
+    final Token name;
+    final List<Stmt.Function> methods;
   }
   // 新增部分结束
 

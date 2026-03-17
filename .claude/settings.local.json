@@ -7,7 +7,8 @@
       "Bash(java -cp out com.craftinginterpreters.lox.Lox)",
       "Bash(javac -d out src/com/craftinginterpreters/lox/*.java)",
       "Bash(echo 'var a = \"\"\"\"global\"\"\"\";:*)",
-      "Bash(java -cp out com.craftinginterpreters.lox.Lox test_ch11.lox)"
+      "Bash(java -cp out com.craftinginterpreters.lox.Lox test_ch11.lox)",
+      "Bash(echo 'class DevonshireCream { serveOn\\(\\) { return \"\"\"\"Scones\"\"\"\"; } } print DevonshireCream;')"
     ]
   }
 }

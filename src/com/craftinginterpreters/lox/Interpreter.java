@@ -77,6 +77,23 @@ class Interpreter implements Expr.Visitor<Object>,
     return null;
   }
 
+  // 新增部分开始
+  @Override
+  public Void visitClassStmt(Stmt.Class stmt) {
+    environment.define(stmt.name.lexeme, null);
+
+    Map<String, LoxFunction> methods = new HashMap<>();
+    for (Stmt.Function method : stmt.methods) {
+      LoxFunction function = new LoxFunction(method, environment);
+      methods.put(method.name.lexeme, function);
+    }
+
+    LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
+    environment.assign(stmt.name, klass);
+    return null;
+  }
+  // 新增部分结束
+
   /**
    * 块语句：为块创建新的子环境，执行完后恢复外层环境。
    * 块内声明的变量在块结束后不可见。
@@ -334,6 +351,33 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 
 
+
+  // 新增部分开始
+  @Override
+  public Object visitGetExpr(Expr.Get expr) {
+    Object object = evaluate(expr.object);
+    if (object instanceof LoxInstance) {
+      return ((LoxInstance) object).get(expr.name);
+    }
+    throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
+  @Override
+  public Object visitSetExpr(Expr.Set expr) {
+    Object object = evaluate(expr.object);
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+    Object value = evaluate(expr.value);
+    ((LoxInstance) object).set(expr.name, value);
+    return value;
+  }
+
+  @Override
+  public Object visitThisExpr(Expr.This expr) {
+    return lookUpVariable(expr.keyword, expr);
+  }
+  // 新增部分结束
 
   /**
    * 函数调用表达式：

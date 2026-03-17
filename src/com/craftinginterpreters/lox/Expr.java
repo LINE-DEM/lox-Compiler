@@ -1,5 +1,7 @@
 package com.craftinginterpreters.lox;
 
+import java.util.List;
+
 /**
  * 表达式 AST 节点基类。Parser 输出、Interpreter 输入。
  * 子类对应各类表达式（字面量、二元运算、变量、赋值等），
@@ -9,6 +11,9 @@ abstract class Expr {
   interface Visitor<R> {
     R visitAssignExpr(Assign expr);
     R visitBinaryExpr(Binary expr);
+    // 新增部分开始
+    R visitCallExpr(Call expr);
+    // 新增部分结束
     R visitGroupingExpr(Grouping expr);
     R visitLiteralExpr(Literal expr);
     // 新增部分开始
@@ -32,6 +37,25 @@ abstract class Expr {
     final Token name;
     final Expr value;
   }
+
+  // 新增部分开始
+  static class Call extends Expr {
+    Call(Expr callee, Token paren, List<Expr> arguments) {
+      this.callee = callee;
+      this.paren = paren;
+      this.arguments = arguments;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitCallExpr(this);
+    }
+
+    final Expr callee;
+    final Token paren;
+    final List<Expr> arguments;
+  }
+  // 新增部分结束
 
   static class Binary extends Expr {
     Binary(Expr left, Token operator, Expr right) {

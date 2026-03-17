@@ -1,4 +1,5 @@
 package com.craftinginterpreters.lox;
+import java.util.ArrayList;
 import java.util.List;
 /**
  * 解释器。输入：Stmt/Expr AST 树；输出：执行副作用（打印、变量赋值等）。
@@ -7,7 +8,28 @@ import java.util.List;
 class Interpreter implements Expr.Visitor<Object>,
                              Stmt.Visitor<Void> {
 
-  private Environment environment = new Environment();
+  // 替换部分开始
+  final Environment globals = new Environment();
+  private Environment environment = globals;
+  // 替换部分结束
+
+  // 新增部分开始
+  Interpreter() {
+    globals.define("clock", new LoxCallable() {
+      @Override
+      public int arity() { return 0; }
+
+      @Override
+      public Object call(Interpreter interpreter,
+                         List<Object> arguments) {
+        return (double)System.currentTimeMillis() / 1000.0;
+      }
+
+      @Override
+      public String toString() { return "<native fn>"; }
+    });
+  }
+  // 新增部分结束
 
   void interpret(List<Stmt> statements) {
     try {
@@ -100,6 +122,15 @@ class Interpreter implements Expr.Visitor<Object>,
   }
   // 新增部分结束
 
+  // 新增部分开始
+  @Override
+  public Void visitFunctionStmt(Stmt.Function stmt) {
+    LoxFunction function = new LoxFunction(stmt, environment);
+    environment.define(stmt.name.lexeme, function);
+    return null;
+  }
+  // 新增部分结束
+
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
@@ -111,6 +142,15 @@ class Interpreter implements Expr.Visitor<Object>,
     System.out.println(stringify(value));
     return null;
   }
+
+  // 新增部分开始
+  @Override
+  public Void visitReturnStmt(Stmt.Return stmt) {
+    Object value = null;
+    if (stmt.value != null) value = evaluate(stmt.value);
+    throw new Return(value);
+  }
+  // 新增部分结束
 
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
@@ -151,6 +191,31 @@ class Interpreter implements Expr.Visitor<Object>,
   public Object visitVariableExpr(Expr.Variable expr) {
     return environment.get(expr.name);
   }
+
+  // 新增部分开始
+  @Override
+  public Object visitCallExpr(Expr.Call expr) {
+    Object callee = evaluate(expr.callee);
+
+    List<Object> arguments = new ArrayList<>();
+    for (Expr argument : expr.arguments) {
+      arguments.add(evaluate(argument));
+    }
+
+    if (!(callee instanceof LoxCallable)) {
+      throw new RuntimeError(expr.paren,
+          "Can only call functions and classes.");
+    }
+
+    LoxCallable function = (LoxCallable)callee;
+    if (arguments.size() != function.arity()) {
+      throw new RuntimeError(expr.paren, "Expected " +
+          function.arity() + " arguments but got " +
+          arguments.size() + ".");
+    }
+    return function.call(this, arguments);
+  }
+  // 新增部分结束
 
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {

@@ -12,14 +12,54 @@ abstract class Stmt {
     R visitBlockStmt(Block stmt);
     R visitExpressionStmt(Expression stmt);
     // 新增部分开始
+    R visitFunctionStmt(Function stmt);
+    // 新增部分结束
+    // 新增部分开始
     R visitIfStmt(If stmt);
     // 新增部分结束
     R visitPrintStmt(Print stmt);
+    // 新增部分开始
+    R visitReturnStmt(Return stmt);
+    // 新增部分结束
     R visitVarStmt(Var stmt);
     // 新增部分开始
     R visitWhileStmt(While stmt);
     // 新增部分结束
   }
+
+  // 新增部分开始
+  static class Function extends Stmt {
+    Function(Token name, List<Token> params, List<Stmt> body) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionStmt(this);
+    }
+
+    final Token name;
+    final List<Token> params;
+    final List<Stmt> body;
+  }
+
+  static class Return extends Stmt {
+    Return(Token keyword, Expr value) {
+      this.keyword = keyword;
+      this.value = value;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitReturnStmt(this);
+    }
+
+    final Token keyword;
+    final Expr value;
+  }
+  // 新增部分结束
 
   // 新增部分开始
   static class If extends Stmt {

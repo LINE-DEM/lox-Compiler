@@ -24,6 +24,9 @@ abstract class Expr {
     // 新增部分结束
     // 新增部分开始
     R visitSetExpr(Set expr);
+    // 新增部分开始
+    R visitSuperExpr(Super expr);
+    // 新增部分结束
     R visitThisExpr(This expr);
     // 新增部分结束
     R visitUnaryExpr(Unary expr);
@@ -77,6 +80,23 @@ abstract class Expr {
     final Token name;
     final Expr value;
   }
+
+  // 新增部分开始
+  static class Super extends Expr {
+    Super(Token keyword, Token method) {
+      this.keyword = keyword;
+      this.method = method;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitSuperExpr(this);
+    }
+
+    final Token keyword;
+    final Token method;
+  }
+  // 新增部分结束
 
   static class This extends Expr {
     This(Token keyword) {

@@ -39,7 +39,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   // 新增部分开始
   private enum ClassType {
     NONE,
-    CLASS
+    CLASS,
+    // 新增部分开始
+    SUBCLASS
+    // 新增部分结束
   }
 
   private ClassType currentClass = ClassType.NONE;
@@ -56,6 +59,24 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     declare(stmt.name);
     define(stmt.name);
 
+    // 新增部分开始
+    if (stmt.superclass != null &&
+        stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
+      Lox.error(stmt.superclass.name,
+          "A class can't inherit from itself.");
+    }
+
+    if (stmt.superclass != null) {
+      currentClass = ClassType.SUBCLASS;
+      resolve(stmt.superclass);
+    }
+
+    if (stmt.superclass != null) {
+      beginScope();
+      scopes.peek().put("super", true);
+    }
+    // 新增部分结束
+
     beginScope();
     scopes.peek().put("this", true);
 
@@ -65,6 +86,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     endScope();
+
+    // 新增部分开始
+    if (stmt.superclass != null) endScope();
+    // 新增部分结束
 
     currentClass = enclosingClass;
     return null;
@@ -182,6 +207,21 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     resolve(expr.object);
     return null;
   }
+
+  // 新增部分开始
+  @Override
+  public Void visitSuperExpr(Expr.Super expr) {
+    if (currentClass == ClassType.NONE) {
+      Lox.error(expr.keyword,
+          "Can't use 'super' outside of a class.");
+    } else if (currentClass != ClassType.SUBCLASS) {
+      Lox.error(expr.keyword,
+          "Can't use 'super' in a class with no superclass.");
+    }
+    resolveLocal(expr, expr.keyword);
+    return null;
+  }
+  // 新增部分结束
 
   @Override
   public Void visitThisExpr(Expr.This expr) {

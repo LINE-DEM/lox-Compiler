@@ -229,6 +229,13 @@ class Parser {
   // 新增部分开始
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
+    // 新增部分开始
+    Expr.Variable superclass = null;
+    if (match(LESS)) {
+      consume(IDENTIFIER, "Expect superclass name.");
+      superclass = new Expr.Variable(previous());
+    }
+    // 新增部分结束
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
     List<Stmt.Function> methods = new ArrayList<>();
@@ -237,7 +244,9 @@ class Parser {
     }
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
-    return new Stmt.Class(name, methods);
+    // 替换部分开始
+    return new Stmt.Class(name, superclass, methods);
+    // 替换部分结束
   }
   // 新增部分结束
 
@@ -467,6 +476,16 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().literal);
     }
+
+    // 新增部分开始
+    if (match(SUPER)) {
+      Token keyword = previous();
+      consume(DOT, "Expect '.' after 'super'.");
+      Token method = consume(IDENTIFIER,
+          "Expect superclass method name.");
+      return new Expr.Super(keyword, method);
+    }
+    // 新增部分结束
 
     // 新增部分开始
     if (match(THIS)) return new Expr.This(previous());

@@ -100,10 +100,13 @@ abstract class Stmt {
 
   // 新增部分开始
   static class Class extends Stmt {
-    Class(Token name, List<Stmt.Function> methods) {
+    // 替换部分开始
+    Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods) {
       this.name = name;
+      this.superclass = superclass;
       this.methods = methods;
     }
+    // 替换部分结束
 
     @Override
     <R> R accept(Visitor<R> visitor) {
@@ -111,6 +114,9 @@ abstract class Stmt {
     }
 
     final Token name;
+    // 新增部分开始
+    final Expr.Variable superclass;
+    // 新增部分结束
     final List<Stmt.Function> methods;
   }
   // 新增部分结束
